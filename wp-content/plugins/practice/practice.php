@@ -2,7 +2,7 @@
 /*
  * Plugin Name: Practice
  * Plugin URI: https://www.fiverr.com/shariq619
- * Description: Practice of all important wordpress code
+ * Description: Practice of options settings api
  * Author: Muhammad Shariq Ali
  * Author URI: http://muhammadshariqali.com
  * Text Domain: practice
