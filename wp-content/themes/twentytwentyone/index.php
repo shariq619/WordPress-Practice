@@ -18,6 +18,7 @@ get_header();
 
 if ( have_posts() ) {
 
+	echo do_shortcode('[carousel]');
 	// Load posts loop.
 	while ( have_posts() ) {
 		the_post();

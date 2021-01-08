@@ -1,4 +1,5 @@
 <?php
+if( ! defined('ABSPATH')  ) exit;
 /*
  * Plugin Name: Movies Post Type
  * Plugin URI: https://www.fiverr.com/shariq619
@@ -134,20 +135,20 @@ class MPT_Custom_Post_Type {
 		} );
 
 		function movie_length( $post ) {
-		    $length = get_post_meta($post->ID,'movie_length', true);
+			$length = get_post_meta( $post->ID, 'movie_length', true );
 			?>
             <p>
                 <label for="movie_length">Length:</label>
-                <input type="text" class="widefat" name="movie_length" value="<?php echo esc_attr($length); ?>">
+                <input type="text" class="widefat" name="movie_length" value="<?php echo esc_attr( $length ); ?>">
             </p>
 			<?php
 		}
 
-		add_action( 'save_post', function($id){
-		    if( isset($_POST['movie_length']) ){
-		        update_post_meta($id,'movie_length',strip_tags($_POST['movie_length']));
-            }
-        } );
+		add_action( 'save_post', function ( $id ) {
+			if ( isset( $_POST['movie_length'] ) ) {
+				update_post_meta( $id, 'movie_length', strip_tags( $_POST['movie_length'] ) );
+			}
+		} );
 	}
 
 

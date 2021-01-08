@@ -1,4 +1,5 @@
 <?php
+if( ! defined('ABSPATH')  ) exit;
 /*
  * Plugin Name: Practice
  * Plugin URI: https://www.fiverr.com/shariq619
@@ -16,8 +17,12 @@ class Practice {
 
 	public function __construct() {
 	    //delete_option('practice_plugin_options');
+
 		$this->options = get_option( 'practice_plugin_options' );
-		$this->register_settings_and_fields();
+		add_action( 'admin_menu', array($this,'add_menu_page'));
+		add_action('admin_init',array($this,'register_settings_and_fields'));
+
+
 	}
 
 	public function add_menu_page() {
@@ -94,11 +99,4 @@ class Practice {
 
 }
 
-
-add_action( 'admin_menu', function () {
-	Practice::add_menu_page();
-} );
-
-add_action( 'admin_init', function () {
-	new Practice();
-} );
+$practice = new Practice();
