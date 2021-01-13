@@ -631,3 +631,138 @@ function twentytwentyone_add_ie_class() {
 }
 add_action( 'wp_footer', 'twentytwentyone_add_ie_class' );
 
+
+// Users last login
+
+add_action( 'wp_login', 'misha_collect_login_timestamp', 20, 2 );
+function misha_collect_login_timestamp( $user_login, $user ) {
+    $ip         = get_client_ip();
+    $country    = getLocationInfoByIp($ip);
+	update_user_meta( $user->ID, 'last_login', time() );
+	update_user_meta( $user->ID, 'user_id', $user->ID );
+	update_user_meta( $user->ID, 'ip',  $ip);
+	update_user_meta( $user->ID, 'user_country',  $country);
+}
+
+
+//Adds Custom Column To Users List Table
+function custom_add_user_id_column($columns) {
+	$columns['user_id']     = 'User ID';
+	$columns['last_login']  = 'Last Login';
+	$columns['ip']  = 'IP Address';
+	$columns['user_country']  = 'User Country';
+	return $columns;
+}
+add_filter('manage_users_columns', 'custom_add_user_id_column');
+
+//Adds Content To The Custom Added Column
+function custom_show_user_id_column_content($output, $column_id, $user_id ) {
+
+    $user = get_userdata( $user_id );
+	if( $column_id == 'user_id' ) {
+		$output = $user_id ? $user_id : '-';
+	}
+
+	if( $column_id == 'last_login' ) {
+		$last_login = get_user_meta( $user_id, 'last_login', true );
+		$date_format = 'd-m-Y H:i:s';
+		$output = $last_login ? date( $date_format, $last_login ) : '-';
+	}
+
+	if( $column_id == 'ip' ) {
+		$ip = get_user_meta( $user_id, 'ip', true );
+		$output = $ip ? $ip : '-';
+	}
+
+	if( $column_id == 'user_country' ) {
+		$user_country = get_user_meta( $user_id, 'user_country', true );
+		//$ip = get_user_meta( $user_id, 'ip', true );
+		//$user_country    = getLocationInfoByIp($ip);
+		$output = $user_country['country'] ? $user_country['country'] : '-';
+	}
+
+	return $output;
+}
+add_filter( 'manage_users_custom_column', 'custom_show_user_id_column_content', 10, 3 );
+
+//  Sortable columns
+add_filter( 'manage_users_sortable_columns', 'misha_sortable_columns' );
+function misha_sortable_columns( $columns ) {
+	return wp_parse_args( array(
+		'last_login' => 'last_login',
+		'user_id' => 'user_id'
+	), $columns );
+}
+
+add_action( 'pre_get_users', 'misha_sort_last_login_column' );
+function misha_sort_last_login_column( $query ) {
+	if( !is_admin() ) {
+		return $query;
+	}
+	$screen = get_current_screen();
+	if( isset( $screen->id ) && $screen->id !== 'users' ) {
+		return $query;
+	}
+	if( isset( $_GET[ 'orderby' ] ) && $_GET[ 'orderby' ] == 'last_login' ) {
+		$query->query_vars['meta_key'] = 'last_login';
+		$query->query_vars['orderby'] = 'meta_value';
+	}
+	if( isset( $_GET[ 'orderby' ] ) && $_GET[ 'orderby' ] == 'user_id' ) {
+		$query->query_vars['meta_key'] = 'user_id';
+		$query->query_vars['orderby'] = 'meta_value';
+	}
+	return $query;
+}
+
+// ip function
+function get_client_ip() {
+	$ipaddress = '';
+	if (isset($_SERVER['HTTP_CLIENT_IP']))
+		$ipaddress = $_SERVER['HTTP_CLIENT_IP'];
+	else if(isset($_SERVER['HTTP_X_FORWARDED_FOR']))
+		$ipaddress = $_SERVER['HTTP_X_FORWARDED_FOR'];
+	else if(isset($_SERVER['HTTP_X_FORWARDED']))
+		$ipaddress = $_SERVER['HTTP_X_FORWARDED'];
+	else if(isset($_SERVER['HTTP_FORWARDED_FOR']))
+		$ipaddress = $_SERVER['HTTP_FORWARDED_FOR'];
+	else if(isset($_SERVER['HTTP_FORWARDED']))
+		$ipaddress = $_SERVER['HTTP_FORWARDED'];
+	else if(isset($_SERVER['REMOTE_ADDR']))
+		$ipaddress = $_SERVER['REMOTE_ADDR'];
+	else
+		$ipaddress = 'UNKNOWN';
+	return $ipaddress;
+}
+
+// get country by ip
+function getLocationInfoByIp($ip_address = ''){
+	if (empty($ip_address)) {
+		$client  = @$_SERVER['HTTP_CLIENT_IP'];
+		$forward = @$_SERVER['HTTP_X_FORWARDED_FOR'];
+		$server  = @$_SERVER['SERVER_ADDR'];
+		$remote  = @$_SERVER['REMOTE_ADDR'];
+		if(!empty($client) && filter_var($client, FILTER_VALIDATE_IP)){
+			$ip = $client;
+		}elseif(!empty($forward) && filter_var($forward, FILTER_VALIDATE_IP)){
+			$ip = $forward;
+		}elseif(!empty($server) && filter_var($server, FILTER_VALIDATE_IP)){
+			$ip = $server;
+		}else{
+			$ip = $remote;
+		}
+	} else {
+		$ip = $ip_address;
+	}
+
+	$ip_data = unserialize(file_get_contents("http://www.geoplugin.net/php.gp?ip=".$ip));
+	$result  = ['country'=>'', 'city'=>''];
+
+	if($ip_data && $ip_data['geoplugin_countryCode'] != null){
+		$result['country'] = $ip_data['geoplugin_countryCode'];
+		$result['city'] = $ip_data['geoplugin_city'];
+	}
+	return $result;
+}
+
+
+

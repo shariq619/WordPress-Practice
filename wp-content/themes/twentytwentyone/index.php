@@ -18,7 +18,14 @@ get_header();
 
 if ( have_posts() ) {
 
+	$first_name     = 'using_variable';
+	$last_name      = 'second_variable';
+	$e_address       = 'janedoe@gmail.com';
+
+	//echo do_shortcode('[get-cc-lists]');
+	//echo do_shortcode('[cc first_name="'.$first_name.'" last_name="'.$last_name.'" email="'.$e_address.'"]');
 	echo do_shortcode('[carousel]');
+
 	// Load posts loop.
 	while ( have_posts() ) {
 		the_post();
